@@ -1,32 +1,86 @@
-# React + TypeScript + Vite
+# CHC Bharno Hospital Information System (HIS)
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+An enterprise-grade, role-based Hospital Information System designed for Community Health Centre (CHC) Bharno, Jharkhand. Built with a React-Vite-TypeScript frontend and a FastAPI backend with integrated Retrieval-Augmented Generation (RAG) AI Assistance.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 🚀 System Architecture Overview
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```mermaid
+graph TD
+    User([User Browser]) -->|HTTPS / JWT| Router[FastAPI Router Gateway]
+    Router -->|RBAC Filter| Service[Service Layer]
+    Service -->|SQLAlchemy| DB[(SQLite / PostgreSQL)]
+    Service -->|Context Retrieval| RAG[RAG AI Engine]
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+---
+
+## 🛠️ Tech Stack & Key Technologies
+
+### Frontend
+- **Framework**: React 18, Vite, TypeScript
+- **Styling**: Vanilla CSS, Tailwind CSS, Lucide Icons, Shadcn/UI
+- **State Management**: React Context API
+- **Routing**: React Router
+
+### Backend
+- **Framework**: FastAPI (Python 3.12)
+- **Database ORM**: SQLAlchemy 2.0 (Asyncio)
+- **Migrations**: Alembic
+- **Security**: JWT tokens, Argon2id password hashing, RBAC (Role-Based Access Control)
+- **Database**: SQLite (Development), PostgreSQL (Production)
+
+---
+
+## 🌟 Key Features
+
+1. **Role-Based Portals**: Personalized dashboards for Admins, Doctors, Nurses, Receptionists, Lab Techs, Pharmacists, and Patients.
+2. **Scheduling Engine**: Interactive calendar with Day/Week/Month/Agenda views, automatic conflict checks, shift management, and leave workflows.
+3. **RAG AI Assistant**: Contextual AI drawer parsing role-specific databases securely using Retrieval-Augmented Generation.
+4. **Live System Health**: Popover showing health states (DB status, worker queues, API latency, security logs).
+5. **Technical Operations**: IT telemetry monitoring logs, CPU metrics, failed login audits.
+
+---
+
+## 📦 Developer Onboarding & Installation
+
+### Prerequisite Check
+Ensure Node.js (v18+) and Python (v3.12+) are installed.
+
+### Local Setup
+1. **Backend Database Setup**:
+   ```bash
+   cd backend
+   pip install -r requirements.txt
+   alembic upgrade head
+   python -m app.database.seed
+   ```
+2. **Start Backend Server**:
+   ```bash
+   uvicorn app.main:app --port 8000 --reload
+   ```
+3. **Frontend Roster Setup**:
+   ```bash
+   cd ..
+   npm install
+   npm run dev
+   ```
+
+---
+
+## 🧪 Testing Suite
+
+### Run Backend Tests
+Run automated unit, API, and RBAC tests:
+```bash
+cd backend
+python -m pytest
+```
+
+### Run End-to-End Validation
+Run the integration workflow validation pipeline (Registration -> Booking -> Consultation -> Laboratory -> Pharmacy -> Billing -> Audits):
+```bash
+cd backend
+python -m tests.e2e_workflow
+```

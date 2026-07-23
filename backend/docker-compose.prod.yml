@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: chc_bharno_prod_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres_prod_pass}
+      POSTGRES_DB: ${POSTGRES_DB:-chc_bharno_his}
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+    networks:
+      - chc_prod_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build:
+      context: .
+      target: runner
+    container_name: chc_bharno_prod_backend
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - chc_prod_uploads:/workspace/uploads
+      - chc_prod_logs:/workspace/logs
+    env_file:
+      - .env.production
+    networks:
+      - chc_prod_network
+
+  nginx:
+    image: nginx:alpine
+    container_name: chc_bharno_nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./certs:/etc/nginx/certs:ro
+    depends_on:
+      - web
+    networks:
+      - chc_prod_network
+
+volumes:
+  postgres_prod_data:
+  chc_prod_uploads:
+  chc_prod_logs:
+
+networks:
+  chc_prod_network:
+    driver: bridge

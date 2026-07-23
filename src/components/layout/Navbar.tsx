@@ -120,7 +120,7 @@ const Navbar: React.FC = () => {
 
             {/* ── Desktop CTAs ── */}
             <div className="hidden lg:flex items-center gap-3">
-              <Link to="/login" className="btn-outline py-2 px-4 text-xs">
+              <Link to="/login/staff" className="btn-outline py-2 px-4 text-xs">
                 <LogIn size={14} />
                 Staff Login
               </Link>
@@ -171,7 +171,7 @@ const Navbar: React.FC = () => {
             ))}
 
             <div className="pt-3 border-t border-slate-100 flex flex-col gap-2">
-              <Link to="/login" className="btn-outline w-full justify-center py-2.5">
+              <Link to="/login/staff" className="btn-outline w-full justify-center py-2.5">
                 <LogIn size={15} />
                 Staff Login
               </Link>
