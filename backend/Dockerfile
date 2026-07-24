@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir --user -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # --- Final Production Stage ---
 FROM python:3.12-slim AS runner
@@ -21,9 +21,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq5 \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy installed dependencies from build stage
-COPY --from=builder /root/.local /root/.local
-ENV PATH=/root/.local/bin:$PATH
+
 
 # Create non-root system user for execution
 RUN useradd -u 10001 -m appuser && \
