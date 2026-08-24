@@ -18,7 +18,11 @@ router = APIRouter(prefix="/admin", tags=["System Administration"])
 async def create_staff(
     payload: StaffCreateRequest,
     db: AsyncSession = Depends(get_db),
-    admin: User = Depends(RoleChecker(["it-admin", "admin"]))
+    admin: User = Depends(RoleChecker([
+    "Hospital Administrator",
+    "System Administrator",
+    "IT Administrator"
+]))
 ):
     repo = UserRepository(db)
     
@@ -68,7 +72,11 @@ async def create_staff(
 @router.get("/staff")
 async def list_staff(
     db: AsyncSession = Depends(get_db),
-    admin: User = Depends(RoleChecker(["it-admin", "admin"]))
+    admin: User = Depends(RoleChecker([
+    "Hospital Administrator",
+    "System Administrator",
+    "IT Administrator"
+]))
 ):
     # Mock data return matching existing React layout
     return success_response(
