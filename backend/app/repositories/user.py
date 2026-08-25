@@ -34,7 +34,7 @@ class UserRepository:
     async def get_role_by_name(self, name: str) -> Optional[Role]:
         result = await self.db.execute(
             select(Role)
-            .where(Role.name == name)
+            .where(Role.name.ilike(name))
         )
         return result.scalars().first()
 
