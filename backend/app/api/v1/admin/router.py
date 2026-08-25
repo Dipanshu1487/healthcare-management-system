@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter, Depends, status, HTTPException
 
 from app.database.session import get_db
 from app.schemas.user import StaffCreateRequest
@@ -95,11 +96,10 @@ async def create_staff(
     existing_user = await repo.get_by_username_or_email(email)
 
     if existing_user:
-        return success_response(
-            data=None,
-            message="A user with this email already exists"
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="A user with this email already exists"
         )
-
     # --------------------------------------------------------
     # 5. Create User
     # --------------------------------------------------------
