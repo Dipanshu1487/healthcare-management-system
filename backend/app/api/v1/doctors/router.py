@@ -1,11 +1,47 @@
 from fastapi import APIRouter, Depends
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.database.session import get_db
 from app.api.deps import get_current_active_user
 from app.models.user import User
+from app.models.doctor import Doctor
 from app.utils.responses import success_response
 
-router = APIRouter(prefix="/doctors", tags=["Clinical Portal"])
+
+router = APIRouter(
+    prefix="/doctors",
+    tags=["Clinical Portal"]
+)
+
+
+@router.get("")
+async def list_doctors(
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_active_user)
+):
+    result = await db.execute(
+        select(Doctor)
+    )
+
+    doctors = result.scalars().all()
+
+    return success_response(
+        data=[
+            {
+                "id": str(doctor.id),
+                "name": doctor.name,
+                "designation": doctor.designation,
+                "qualification": doctor.qualification,
+                "available": doctor.available,
+                "status": doctor.status,
+                "department_id": str(doctor.department_id)
+            }
+            for doctor in doctors
+        ],
+        message="Doctors retrieved successfully"
+    )
+
 
 @router.get("/queue")
 async def get_patient_queue(
@@ -15,8 +51,18 @@ async def get_patient_queue(
     # Mock return values for consultations queue
     return success_response(
         data=[
-            {"id": "1", "uhid": "JHR-2026-98124", "name": "Rohan Oraon", "priority": "Normal"},
-            {"id": "2", "uhid": "JHR-2026-38294", "name": "Geeta Devi", "priority": "Urgent"}
+            {
+                "id": "1",
+                "uhid": "JHR-2026-98124",
+                "name": "Rohan Oraon",
+                "priority": "Normal"
+            },
+            {
+                "id": "2",
+                "uhid": "JHR-2026-38294",
+                "name": "Geeta Devi",
+                "priority": "Urgent"
+            }
         ],
         message="Patient queue fetched"
     )
