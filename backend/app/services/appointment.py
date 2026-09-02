@@ -11,6 +11,7 @@ from app.models.appointment import Appointment
 from app.models.doctor import Doctor
 from app.core.exceptions import APIException
 
+
 class AppointmentService:
     def __init__(self, db: AsyncSession):
         self.db = db
@@ -28,69 +29,40 @@ class AppointmentService:
         priority: str = "Normal"
     ) -> Appointment:
 
-    # 1. Find patient
-    patient = await self.patient_repo.get(patient_id)
+        # 1. Find patient
+        patient = await self.patient_repo.get(patient_id)
 
-    if not patient:
-        raise APIException(
-            message="Patient not found",
-            status_code=404
+        if not patient:
+            raise APIException(
+                message="Patient not found",
+                status_code=404
+            )
+
+        # 2. Find doctor
+        result = await self.db.execute(
+            select(Doctor).where(Doctor.id == doctor_id)
         )
 
-    # 2. Find doctor
-    result = await self.db.execute(
-        select(Doctor).where(Doctor.id == doctor_id)
-    )
+        doctor = result.scalars().first()
 
-    doctor = result.scalars().first()
+        if not doctor:
+            raise APIException(
+                message="Doctor not found",
+                status_code=404
+            )
 
-    if not doctor:
-        raise APIException(
-            message="Doctor not found",
-            status_code=404
-        )
+        # 3. Check doctor availability
+        if not doctor.available:
+            raise APIException(
+                message="Doctor is not available",
+                status_code=400
+            )
 
-    # 3. Generate queue token
-    token_num = random.randint(1, 99)
-    token = f"T-{token_num:02d}"
-
-    # 4. Create appointment
-    appointment = Appointment(
-        token=token,
-        date=target_date,
-        time_slot=time_slot,
-        status="Scheduled",
-        priority=priority,
-        symptoms=symptoms,
-        patient_id=patient.id,
-        doctor_id=doctor.id,
-        department_id=doctor.department_id
-    )
-
-    await self.appointment_repo.create(appointment)
-
-    # 5. Audit log
-    await self.audit_service.log_action(
-        actor_role="Reception",
-        actor_name="Reception Desk",
-        action="BOOK_APPOINTMENT",
-        entity_type="Appointment",
-        entity_id=str(appointment.id),
-        description=(
-            f"Booked appointment for {patient.name} "
-            f"with doctor {doctor.name} "
-            f"with token {token}"
-        )
-    )
-
-    # 6. Commit
-    await self.db.commit()
-
-    return appointment
-        # Generate queue token
+        # 4. Generate queue token
         token_num = random.randint(1, 99)
         token = f"T-{token_num:02d}"
 
+        # 5. Create appointment
         appointment = Appointment(
             token=token,
             date=target_date,
@@ -99,19 +71,27 @@ class AppointmentService:
             priority=priority,
             symptoms=symptoms,
             patient_id=patient.id,
-            doctor_id=doctor_id
+            doctor_id=doctor.id,
+            department_id=doctor.department_id
         )
+
         await self.appointment_repo.create(appointment)
 
-        # Log action
+        # 6. Audit log
         await self.audit_service.log_action(
             actor_role="Reception",
             actor_name="Reception Desk",
             action="BOOK_APPOINTMENT",
             entity_type="Appointment",
             entity_id=str(appointment.id),
-            description=f"Booked appointment for {patient.name} with token {token}"
+            description=(
+                f"Booked appointment for {patient.name} "
+                f"with doctor {doctor.name} "
+                f"with token {token}"
+            )
         )
 
+        # 7. Commit
         await self.db.commit()
+
         return appointment
